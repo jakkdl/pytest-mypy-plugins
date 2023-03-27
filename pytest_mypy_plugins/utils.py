@@ -351,8 +351,26 @@ def extract_output_matchers_from_out(out: str, params: Mapping[str, Any], regex:
     return matchers
 
 
+def _html_unescape(string: str) -> str:
+    """remove HTML escaping on all of these " & < >"""
+
+    html_codes = {
+        "&quot;": '"',
+        "&lt;": "<",
+        "&gt;": ">",
+    }
+
+    for char in html_codes:
+        string = string.replace(char, html_codes[char])
+    # & must be handled last
+    string = string.replace("&amp;", "&")
+    return string
+
+
 def render_template(template: str, data: Mapping[str, Any]) -> str:
-    return chevron.render(template=template, data={k: v if v is not None else "None" for k, v in data.items()})
+    return _html_unescape(
+        chevron.render(template=template, data={k: v if v is not None else "None" for k, v in data.items()})
+    )
 
 
 def get_func_first_lnum(attr: Callable[..., None]) -> Optional[Tuple[int, List[str]]]:
